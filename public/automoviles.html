@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Automóviles</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>Automóviles Disponibles</h1>
+
+    <!-- Botón de Cerrar Sesión con un ID para identificarlo fácilmente -->
+    <button id="cerrar-sesion" onclick="cerrarSesion()" style="display: none;">Cerrar Sesión</button>
+
+    <div id="autos-container"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem("token");
+            const logoutBtn = document.getElementById("cerrar-sesion");
+
+            // Si no hay token y NO estamos en index.html, redirigir al login
+            if (!token) {
+                if (!window.location.pathname.includes("index.html")) {
+                    alert("Debes iniciar sesión primero");
+                    window.location.href = "index.html";
+                }
+                return;
+            }
+
+            // Mostrar el botón de cerrar sesión
+            logoutBtn.style.display = "block";
+
+            try {
+                const response = await fetch("http://localhost:3000/act4/carros", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("No se pudo obtener la lista de automóviles");
+                }
+
+                const autos = await response.json();
+                const container = document.getElementById("autos-container");
+
+                autos.forEach(auto => {
+                    const autoElement = document.createElement("div");
+                    autoElement.classList.add("auto-item");
+                    autoElement.innerHTML = `
+                        <h3>${auto.marca} ${auto.modelo}</h3>
+                        <p>Año: ${auto.año}</p>
+                        <p>Precio: $${auto.precio}</p>
+                        <p>Descripción: ${auto.descripcion}</p>
+                        <hr>
+                    `;
+                    container.appendChild(autoElement);
+                });
+
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Hubo un problema al obtener los automóviles");
+            }
+        });
+
+        function cerrarSesion() {
+            localStorage.removeItem("token"); // Elimina el token
+            alert("Sesión cerrada correctamente");
+            window.location.href = "index.html"; // Redirige al login inmediatamente
+        }
+    </script>
+</body>
+</html>
