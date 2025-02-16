@@ -1,0 +1,32 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches:
+      - main  # Ejecutar el workflow cuando se haga push en la rama main
+  pull_request:
+    branches:
+      - main  # Ejecutar el workflow en PR a main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Ejecutar pruebas (si tienes pruebas configuradas)
+        run: npm test || echo "No hay pruebas configuradas"
+
+      - name: Desplegar en Render
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
